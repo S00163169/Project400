@@ -1,0 +1,34 @@
+<!--
+Created by Owen Aderanti.
+
+Description: Receipts Upload lightning component body.
+
+Last modified by Owen on 06-02-2020.
+-->
+<aura:component controller="ReceiptController" implements="flexipage:availableForRecordHome,force:hasRecordId,force:lightningQuickAction" access="global" >
+    <aura:attribute name="fileName" type="String" />
+    <aura:attribute name="expense" type="String" />
+    <aura:attribute name="isPop" type="Boolean" />
+    <aura:attribute name="recordId" type="String"/>
+    <aura:attribute name="expenseRecord" type="String" />
+    <aura:attribute name="amount" type="Decimal" default="0" />
+    <aura:attribute name="isLarge" type="Boolean" default="False"/>
+    
+    <lightning:layout class="slds-align_absolute-center">
+        <lightning:layoutItem>
+            <lightning:input name="expenseReason" label="Expense Reason" value="{!v.expense}" type="string" />
+            <lightning:input name="amountField" label="Expense Amount" step="0.01" value="{!v.amount}" min="0.01" type="number" />
+            <lightning:input aura:id="fileId" name="fileId" type="file" label="Upload Receipt" accept="image/png, .pdf, .jpeg" onchange="{!c.insertFile}" />
+            
+            
+            <aura:if isTrue="{!isLarge}">
+                <lightning:formattedText class="colorChanger" value="{!v.fileName}" />
+                <aura:set attribute="else"><lightning:formattedText value="{!v.fileName}" /> </aura:set>
+            </aura:if>
+            <div class="spacer">
+                <lightning:button variant="brand" label="Save Expense" title="Save Expense" onclick="{!c.saveFile}" disabled="{!isPop}" />
+            </div>
+        </lightning:layoutItem>
+    </lightning:layout>
+    
+</aura:component>

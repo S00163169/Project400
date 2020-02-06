@@ -1,0 +1,123 @@
+({
+    init : function(component, event, helper) {
+        var action = component.get('c.getJob');
+        action.setParams({
+            recId: component.get('v.recordId')
+        });
+        action.setCallback(this, function(data){
+            if (data.getState() === "SUCCESS"){
+                var val = JSON.parse(data.getReturnValue());
+                component.set('v.jobTime', val.hasTime);
+                component.set('v.time', val.myTime);
+                component.set('v.time2', val.myTime2);
+            }
+        });
+        $A.enqueueAction(action);
+    },
+    
+    action : function(component, event, helper){
+    },
+    
+    save : function(component, event, helper){
+        var resource = component.get('v.selectedResource');
+        var action = component.get('c.createJobResource');
+        action.setParams({
+            jobId: component.get('v.recordId'),
+            resourceId: resource,
+            hasTime: component.get('v.jobTime'),
+            value: component.get('v.time'),
+            value2: component.get('v.time2')
+        });
+        action.setCallback(this, function(data){
+            if (data.getState() === "SUCCESS"){
+                var value = data.getReturnValue();
+                if (value === "SUCCESS"){
+                    var toastEvent = $A.get("e.force:showToast");
+                    toastEvent.setParams({
+                        "title": "Success!",
+                        "type": "success",
+                        "message": "The resource has been added to the job successfully."
+                    });
+                    toastEvent.fire();
+                    $A.get("e.force:closeQuickAction").fire();
+                    $A.get('e.force:refreshView').fire();
+                }
+                else {
+                    var toastEvent = $A.get("e.force:showToast");
+                    toastEvent.setParams({
+                        "title": "Error !",
+                        "type": "error",
+                        "message": "Something went wrong! Please check the error logs."
+                    });
+                    toastEvent.fire();
+                }
+            }
+            
+        });
+        if ( resource === null ){
+            var toastEvent = $A.get("e.force:showToast");
+            toastEvent.setParams({
+                "title": "Warning !",
+                "type": "warning",
+                "message": "No Resource has been selected !"
+            });
+            toastEvent.fire();
+        }
+        else {
+            $A.enqueueAction(action);
+        }
+    },
+    
+    searcher : function(component, event, helper){
+        var time = component.get('v.time');
+        var time2 = component.get('v.time2');
+        var isNull = false;
+        if ( time === null || time2 === null){
+            isNull = true;
+            var toastEvent = $A.get("e.force:showToast");
+            toastEvent.setParams({
+                "title": "Warning !",
+                "type": "warning",
+                "message": "Date and Time are required !"
+            });
+            toastEvent.fire();
+        }
+        else{
+           component.set('v.isLoading', true); 
+        }
+        
+        
+        var action = component.get('c.searchResources');
+        action.setParams({
+            value: time,
+            value2: time2
+        });
+        action.setCallback(this, function(data){
+            var values = data.getReturnValue();
+            if ( data.getState() === "SUCCESS" ){
+                component.set('v.resources', values);
+                component.set('v.isPop', true);
+                component.set('v.isLoading', false);
+            }
+            
+        });
+        if (! isNull ){
+           $A.enqueueAction(action); 
+        }
+    },
+    
+    selector : function(component, event, helper){
+        var targ = event.currentTarget;
+        var sId = targ.dataset.value;
+        var collection = component.get('v.selectedResource');
+        
+        if ( (collection == null) || (collection == '' )){
+            component.set('v.selectedResource', sId);
+        }
+        else {
+            var x = collection + ',' + sId;
+            component.set('v.selectedResource', x);
+        }
+        event.currentTarget.style.background = '#B1FF77';
+    }
+})

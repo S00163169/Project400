@@ -1,0 +1,77 @@
+/*
+ * Created by Owen Aderanti
+ * 
+ * Description: Test class for Resource availability.
+ * 
+ * Last modified by Owen on 05-02-2020.
+*/
+@isTest
+public class ResourceSchedulerTest {
+    @testSetup static void testData(){
+        datetime value1 = datetime.newInstance(2020, 02, 05, 12, 0, 0);
+        datetime value2 = value1.addHours(2);
+        
+        Account a = new Account(Name = 'Test Account');
+        insert a;
+        job__c j = new Job__c(account__c = a.id, PostalCode__c = 'D04 E5W5', start_time__c = value1, end_time__c = value2);
+        insert j;
+        resource__c r = new resource__c(Name = 'John Doe', department__c = 'Large');
+        insert r;
+        insert new resource__c(Name = 'Jane Doe', department__c = 'Small');
+        job_resource__c jr = new job_resource__c(job__c = j.Id, resource__c = r.id);
+        insert jr;
+    }
+    
+    @istest static void testUpdateJobTime(){
+        Job__c j = [ select id from job__c limit 1 ];
+        datetime date1 = datetime.now();
+        datetime date2 = date1.addDays(1);
+        
+        test.startTest();
+        ResourceScheduler.updateJobTime(date1, date2, j.Id);
+        test.stopTest();
+    }
+    
+    @istest static void testCreateJobResource(){
+        boolean a = false;
+        job__c j = [ select id from job__c limit 1 ];
+        list<resource__c> res = [ select id from resource__c ];
+        string resIds = '';
+        if ( res != null ) { for (resource__c r : res) { resIds += r.id + ','; } }
+        
+        datetime value1 = null, value2 = null;
+        
+        test.startTest();
+        string res1 = ResourceScheduler.createJobResource(j.Id, resIds, true, value1, value2);
+        
+        system.assertEquals('SUCCESS', res1);
+        test.stopTest();
+    }
+    
+    @istest static void testSearchResources(){
+        datetime value1 = datetime.newInstance(2020, 02, 05, 12, 0, 0);
+        datetime value2 = value1.addHours(2);
+        
+        test.startTest();
+        list<resource__c> res = ResourceScheduler.searchResources(value1, value2);
+        
+        system.assertEquals(1, res.size());
+        test.stopTest();
+    }
+    
+    @istest static void testGetJob(){
+        job__c j = [ select id, Start_Time__c, End_Time__c from job__c limit 1 ];
+        
+        ResourceScheduler.TimeWrapper tw = new ResourceScheduler.TimeWrapper();
+        tw.hasTime = true;
+        tw.myTime = j.Start_Time__c;
+        tw.myTime2 = j.End_Time__c;
+        
+        string seri = JSOn.serialize(tw);
+        
+        test.startTest();
+        string res = ResourceScheduler.getJob(j.Id);
+        system.assertEquals(seri, res);
+        test.stopTest();
+    }
+}

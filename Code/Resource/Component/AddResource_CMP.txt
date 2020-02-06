@@ -1,0 +1,70 @@
+<!--
+Created by Owen Aderanti.
+
+Description: Resource scheduler lightning component body.
+
+Last modified by Owen on 06-02-2020.
+-->
+<aura:component controller="ResourceScheduler" implements="force:lightningQuickAction,force:hasRecordId" >
+    <aura:attribute name="time" type="DateTime" access="private"/>
+    <aura:attribute name="time2" type="DateTime" access="private"/>
+    <aura:attribute name="counter" type="Integer" access="private"/>
+    <aura:attribute name="resources" type="Resource__c[]" access="private"/>
+    <aura:attribute name="isPop" type="Boolean" default="False" access="private"/>
+    <aura:attribute name="isLoading" type="Boolean" default="False" access="private" />
+    <aura:attribute name="selectedResource" type="String" access="private" />
+    <aura:attribute name="recordId" type="String" />
+    <aura:attribute name="jobTime" type="Boolean" access="private" /> 
+    
+    <aura:handler name="init" value="{!this}" action="{!c.init}" />
+    
+    <lightning:layout>
+        
+        <lightning:layoutItem padding="horizontal-medium" size="6">
+            <aura:if isTrue="{!v.jobTime}">
+                <lightning:input type="datetime" name="dateInput" label="Enter Job Start Time" value="{!v.time}" readonly="true" />
+                <lightning:input type="datetime" name="dateInput2" label="Enter Job End Time" value="{!v.time2}" readonly="true" />
+                <aura:set attribute="else">
+                    <lightning:input type="datetime" name="dateInput" label="Enter Job Start Time" value="{!v.time}" />
+                    <lightning:input type="datetime" name="dateInput2" label="Enter Job End Time" value="{!v.time2}" />
+                </aura:set>
+            </aura:if>
+            
+            <div class="searcher"> 
+                <lightning:button label="Search" variant="brand" title="search action" onclick="{!c.searcher}"/>
+            </div>
+        </lightning:layoutItem>
+        
+        <lightning:layoutItem padding="horizontal-medium" size="6">
+            <lightning:layout multipleRows="true">
+                <lightning:layoutItem><div class="strong">Resources</div></lightning:layoutItem>
+                <lightning:layoutItem>
+                    <aura:if isTrue="{!v.isLoading}">
+                        <div class="exampleHolder">
+                            <lightning:spinner alternativeText="Data Loading..." size="medium"/>
+                        </div>
+                    </aura:if>
+                    <aura:if isTrue="{!v.isPop}">
+                        <div class="heightLimiter padder">
+                            <aura:iteration items="{!v.resources}" var="r" indexVar="index">
+                                <aura:if isTrue="{! (mod(index,2)==0) ? 'true':'false'}">
+                                    <div class="slds-text-heading_medium backColour" onclick="{!c.selector}" data-value="{!r.Id}">
+                                        {!r.Name}
+                                    </div>
+                                    <aura:set attribute="else">
+                                        <div class="slds-text-heading_medium" onclick="{!c.selector}" data-value="{!r.Id}">
+                                            {!r.Name}
+                                        </div>
+                                    </aura:set>
+                                </aura:if>
+                            </aura:iteration>
+                        </div>
+                        <div class="myButton">
+                            <lightning:button label="Save" variant="brand" title="save action" onclick="{!c.save}"/>
+                        </div>
+                    </aura:if>
+                </lightning:layoutItem>
+            </lightning:layout>
+        </lightning:layoutItem>
+    </lightning:layout>
+</aura:component>

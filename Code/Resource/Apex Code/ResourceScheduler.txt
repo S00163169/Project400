@@ -1,0 +1,68 @@
+/*
+* Created by Owen Aderanti.
+* 
+* Description: Scheduling class for Resource availability.
+* 
+* Last modified by Owen on 05-02-2020.
+*/
+public class ResourceScheduler {
+    @AuraEnabled public static string getJob(string recId){
+        TimeWrapper tw = new TimeWrapper();
+                
+        job__c j = [ select id, start_time__c, end_time__c from job__c where id =: recId ];
+        
+        if ( j.start_time__c != null ){ tw.myTime = j.Start_Time__c; tw.myTime2 = j.End_Time__c; tw.hasTime = true; } else { tw.myTime = datetime.now(); tw.myTime2 = datetime.now(); tw.hasTime = false; }
+        
+        return JSON.serialize(tw);
+    }
+    
+    @AuraEnabled public static list<resource__c> searchResources(datetime value, datetime value2){
+        list<job_resource__c> slots = [ select id, job__c, job__r.start_time__c, resource__c from job_resource__c where (job__r.start_time__c <=: value AND job__r.end_time__c >=:value) OR (job__r.start_time__c <=: value2 AND job__r.end_time__c >=: value2) ];
+        map<id, resource__c> resources = new map<id, resource__c> ([ select id, name, department__c from resource__c ]);
+        list<resource__c> freeResources = new list<resource__c>();
+        
+        if ( slots.isEmpty() ){ freeResources = resources.values(); }
+        else{
+            list<resource__c> temp = new list<resource__c>();
+            for (job_resource__c j : slots){
+                if ( resources.keySet().contains(j.Resource__c) ){ temp.add(resources.get(j.Resource__c)); }
+            }
+            
+            for (resource__c r : resources.values()){
+                if (! temp.contains(r) ){ freeResources.add(r); }
+            }
+        }
+        
+        return freeResources;
+    } 
+    
+    @AuraEnabled public static String createJobResource(string jobId, string resourceId, boolean hasTime, datetime value, datetime value2){
+        string result = '';
+        
+        if (! hasTime ){ updateJobTime(value, value2, jobId); }
+        
+        string[] abc = resourceId.split(',');
+        
+        if ( abc != null ) {
+            list<job_resource__c> resources = new list<job_resource__c>();
+            for (string i : abc){ resources.add(new job_resource__c(job__c = jobId, resource__c = i)); }
+            try { insert resources; result = 'SUCCESS'; } catch (exception e) { insert new error_log__c(error_message__c = e.getMessage(), time__c = datetime.now()); result = 'ERROR'; }
+        }
+        
+        return result;
+    }
+    
+    public static void updateJobTime(datetime value, datetime value2, string jobId){
+        job__c j = [ select id, start_time__c from job__c where id =: jobId ];
+        
+        j.start_time__c = value; j.End_Time__c = value2;
+        
+        try { update j; } catch (exception e) { insert new error_log__c(error_message__c = e.getMessage(), time__c = datetime.now()); }
+    }
+    
+    public class TimeWrapper{
+        public datetime myTime {get; set;}
+        public datetime myTime2 {get; set;}
+        public boolean hasTime {get; set;}
+    }
+}

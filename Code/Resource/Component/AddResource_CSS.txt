@@ -1,0 +1,48 @@
+.THIS {
+}
+
+.THIS .strong{
+    font-size:16px;
+    font-weight:bold;
+    text-align:center;
+}
+
+.THIS .searcher{
+    margin-top:20px;
+    text-align:center;
+}
+
+.THIS .exampleHolder{
+    margin-top:30px;
+    position: relative;
+    display: inline-block;
+    width: 80px;
+    height: 80px;
+}
+
+.THIS .heightLimiter{
+    max-height:45vh;
+    overflow:auto;
+    left:0;
+}
+
+.THIS .padder{
+    margin-top:20px !important;
+    width:125%;
+}
+
+.THIS .backColour{
+    background-color:#EFEFEF;
+}
+
+.THIS .selectedColour{
+    background-color:#D4FFB4 !important;
+}
+
+.THIS .myButton{
+    margin-top:10px;
+}
+
+.THIS .myLayout{
+    margin-bottom:10px;
+}

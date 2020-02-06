@@ -1,0 +1,24 @@
+<!--
+Created by Owen Aderanti.
+
+Description: Google Maps Lightning component body.
+
+Last modified by Owen on 06-02-2020. 
+-->
+<aura:component controller="GoogleMapsController" implements="flexipage:availableForRecordHome,force:hasRecordId" access="global" >
+    <aura:attribute name="mapMarkers" type="Object" />
+    <aura:attribute name="zoomLevel" type="Integer"/>
+    <aura:attribute name="recordId" type="String" />
+    <aura:attribute name="isHidden" type="Boolean" default="False"/>
+    
+    <aura:handler name="init" value="{!this}" action="{!c.init}" />
+    <aura:handler event="force:refreshView" action="{!c.init}" />
+
+    
+    <aura:if isTrue="{!v.isHidden}">
+        <lightning:card title="Google Maps Site Location">
+            <lightning:map mapMarkers="{!v.mapMarkers}" zoomLevel="{!v.zoomLevel}" />
+        </lightning:card>
+    </aura:if>
+    
+</aura:component>

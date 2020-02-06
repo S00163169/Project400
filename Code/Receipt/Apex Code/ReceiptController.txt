@@ -1,0 +1,40 @@
+/*
+ * Created by Owen Aderanti.
+ * 
+ * Description: Controller class for Receipt Upload.
+ * 
+ * Last modified on 06-02-2020.
+*/
+public without sharing class ReceiptController {
+    public static string createExpense(string jobId, decimal amount, string file, string fileName, string contentType, string reason){
+        boolean a = false, b = false, c = false; string res = 'ERROR';
+        Job_Expense__c exp = new Job_Expense__c(job__c = jobId, amount__c = amount, reason__c = reason);
+        
+        try { insert exp; a = true; } catch(exception e) { insert new error_log__c(time__c = datetime.now(), error_message__c = e.getMessage()); }
+        
+        if ( a ) {
+            string url = System.Url.getSalesforceBaseUrl().toExternalForm();
+            string path = url + '/sfc/servlet.shepherd/version/download/' + fileName;
+            
+            ContentVersion cv = new ContentVersion(ContentLocation = 'S', Title  = fileName, VersionData = EncodingUtil.base64Decode(file), PathOnClient = path);
+            try { insert cv; b = true; } catch (exception e) { insert new error_log__c(time__c = datetime.now(), error_message__c = e.getMessage()); c = true; }
+            
+            if ( b ) {
+                contentversion vc = [ select id, contentdocumentid from contentversion where id =: cv.id ];
+                
+                if ( vc != null ){
+                    try { insert new ContentDocumentLink(contentdocumentid = vc.ContentDocumentId, linkedentityid = exp.id, ShareType = 'V'); res = 'SUCCESS'; } catch (exception e) {  insert new error_log__c(time__c = datetime.now(), error_message__c = e.getMessage()); }
+                }
+            }
+            
+            if ( c ) { try { delete exp; } catch (exception e) {  insert new error_log__c(time__c = datetime.now(), error_message__c = e.getMessage()); } }
+        }
+        
+        return res;
+    }
+    
+    @AuraEnabled public static string enterExpense(string jobId, string fileName, string myFile, string contentType, decimal amount, string reason){
+        myFile = EncodingUtil.urlDecode(myFile, 'UTF-8');
+        return createExpense(jobId, amount, myFile, fileName, contentType, reason);
+    }
+}

@@ -1,0 +1,47 @@
+({
+	helperUpload : function(cmp) {
+	},
+    
+    uploadFile : function(component, file, fileContents, event){
+        
+        var action = component.get('c.enterExpense'); 
+        action.setParams({
+            jobId: component.get('v.recordId'),
+            fileName: file.name,
+            myFile: encodeURIComponent(fileContents), 
+            contentType: file.type,
+            amount: component.get('v.amount'),
+            reason: component.get('v.expense')
+        });
+        action.setCallback(this, function(a) {
+            var res = a.getReturnValue();
+            console.log(res);
+            if ( res === 'SUCCESS' ) { this.successFiles(component, event); } else { this.errorFiles(component, event); }
+        });
+        $A.enqueueAction(action); 
+        //console.log('Im at the end of the helper.');
+    },
+    
+    successFiles : function(component, event){
+        var toastr = $A.get("e.force:showToast");
+        toastr.setParams({
+            "title": "Success!",
+            "type": "success",
+            "message": "The receipt(s) have been uploaded successfully."
+        });
+        toastr.fire();
+        $A.get("e.force:closeQuickAction").fire();
+        $A.get("e.force:refreshView").fire();
+    },
+    
+    errorFiles : function(component){
+        var toastr = $A.get("e.force:showToast");
+        toastr.setParams({
+            "title": "Error !",
+            "type": "error",
+            "message": "The receipt(s) failed to upload. Review Error logs."
+        });
+        toastr.fire();
+        $A.get("e.force:closeQuickAction").fire();
+    }
+})
